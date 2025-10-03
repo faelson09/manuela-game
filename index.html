@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Game</title>
+    <style>
+      /* Neon game-like theme */
+      @keyframes moveBg {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #ffffff;
+        color: #1e293b;
+        min-height: 100vh;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 840px;
+        margin: 0 auto;
+        box-shadow: 0 2px 12px rgba(2, 6, 23, 0.06);
+      }
+      .question {
+        font-size: 20px;
+        margin-bottom: 16px;
+      }
+      .answers {
+        display: grid;
+        gap: 10px;
+      }
+      .answers button {
+        text-align: left;
+        border: 1px solid #e2e8f0;
+        background: radial-gradient(
+          120% 120% at 10% 10%,
+          #ffffff 0%,
+          #f8fafc 60%
+        );
+        color: #1e293b;
+        border-radius: 12px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: transform 0.12s ease, box-shadow 0.12s ease,
+          border-color 0.12s ease;
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0), 0 0 0 0 rgba(236, 72, 153, 0);
+      }
+      .answers button:hover {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35),
+          0 0 18px rgba(236, 72, 153, 0.25);
+        transform: translateY(-1px);
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .muted {
+        color: #64748b;
+        font-size: 14px;
+      }
+      .danger {
+        color: #dc2626;
+      }
+      .good {
+        color: #16a34a;
+      }
+      .hidden {
+        display: none;
+      }
+      .auth {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        max-width: 840px;
+        margin: 0 auto 16px;
+        display: grid;
+        gap: 12px;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25),
+          0 0 22px rgba(236, 72, 153, 0.25);
+        backdrop-filter: blur(6px);
+      }
+      .auth .row {
+        display: grid;
+        gap: 6px;
+      }
+      .auth input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #1e293b;
+      }
+      .auth button {
+        padding: 12px;
+        border-radius: 10px;
+        border: 0;
+        background: linear-gradient(90deg, #3b82f6, #ec4899);
+        color: white;
+        cursor: pointer;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.25),
+          0 0 0 0 rgba(236, 72, 153, 0.25);
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+      }
+      .auth button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(59, 130, 246, 0.25),
+          0 8px 22px rgba(236, 72, 153, 0.25);
+      }
+      .auth .error {
+        color: #dc2626;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        padding: 8px 10px;
+        border-radius: 8px;
+        display: none;
+      }
+      .toolbar {
+        max-width: 740px;
+        margin: 0 auto 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .toolbar select,
+      .toolbar input {
+        background: #ffffff;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 10px;
+      }
+      .spacer {
+        flex: 1;
+      }
+      .menu {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        max-width: 840px;
+        margin: 0 auto 16px;
+        box-shadow: 0 2px 12px rgba(2, 6, 23, 0.06);
+      }
+      .menu .row {
+        display: grid;
+        gap: 6px;
+        margin: 10px 0;
+      }
+      .menu select,
+      .menu input[type="checkbox"] {
+        background: #ffffff;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 10px;
+      }
+      .menu .actions {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+      }
+      .menu button {
+        padding: 12px;
+        border-radius: 8px;
+        border: 0;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .menu .primary {
+        background: linear-gradient(90deg, #3b82f6, #ec4899);
+        color: white;
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.25),
+          0 0 0 0 rgba(236, 72, 153, 0.25);
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+      }
+      .menu .primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(59, 130, 246, 0.25),
+          0 8px 22px rgba(236, 72, 153, 0.25);
+      }
+      .link {
+        color: #ec4899;
+        text-decoration: none;
+      }
+      .link:hover {
+        color: #be185d;
+        text-decoration: underline;
+      }
+    </style>
+    <script>
+      const API = "http://localhost:5000";
+      let questions = [];
+      let currentIndex = 0;
+      let score = 0;
+      let difficulty = "fácil";
+      let perQuestionSeconds = 30;
+      let timerId = null;
+      let remaining = 0;
+
+      let audioBgm;
+      let audioCorrect;
+      let audioWrong;
+      let audioWin;
+      let audioLose;
+
+      function show(el) {
+        el.style.display = "block";
+      }
+      function hide(el) {
+        el.style.display = "none";
+      }
+
+      function goToLogin() {
+        window.location.href = "/login.html";
+      }
+      function logout() {
+        localStorage.removeItem("sessionId");
+        localStorage.removeItem("sessionName");
+        window.location.href = "/login.html";
+      }
+
+      async function saveScore() {
+        const sessionId = localStorage.getItem("sessionId");
+        if (!sessionId) return;
+
+        try {
+          const res = await fetch(`${API}/usuarios/${sessionId}/point`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ point: score }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            console.log("Pontuação salva:", data);
+          }
+        } catch (error) {
+          console.error("Erro ao salvar pontuação:", error);
+        }
+      }
+
+      async function loadUserScore() {
+        const sessionId = localStorage.getItem("sessionId");
+        if (!sessionId) return 0;
+
+        try {
+          const res = await fetch(`${API}/usuarios/${sessionId}`);
+          if (res.ok) {
+            const userData = await res.json();
+            return userData.total_pontos || 0;
+          }
+        } catch (error) {
+          console.error("Erro ao carregar pontuação:", error);
+        }
+        return 0;
+      }
+
+      function renderQuestion() {
+        const q = questions[currentIndex];
+        const qEl = document.getElementById("question");
+        const list = document.getElementById("answers");
+        const progress = document.getElementById("progress");
+        qEl.textContent = q.text;
+        progress.textContent = `Pergunta ${currentIndex + 1} de ${
+          questions.length
+        } • Dificuldade: ${difficulty}`;
+        list.innerHTML = "";
+        q.alternatives.forEach((alt, idx) => {
+          const btn = document.createElement("button");
+          btn.textContent = alt;
+          btn.addEventListener("click", () => handleAnswer(idx));
+          list.appendChild(btn);
+        });
+        startTimer();
+      }
+
+      function endGame(message) {
+        const card = document.getElementById("card");
+        stopTimer();
+        stopBgm();
+        card.innerHTML = `
+          <div class="question">${message}</div>
+          <div class="muted">Pontuação desta partida: ${score}</div>
+          <div class="controls" style="margin-top:12px">
+            <button onclick="window.location.reload()">Jogar novamente</button>
+            <button onclick="goToLogin()">Sair</button>
+          </div>
+        `;
+      }
+
+      async function handleAnswer(selectedIndex) {
+        const q = questions[currentIndex];
+        if (
+          selectedIndex !== q.correct_index &&
+          selectedIndex !== q.correctIndex
+        ) {
+          playSfx("wrong");
+          endGame("Resposta errada. Fim de jogo!");
+          return;
+        }
+        score += typeof q.points === "number" ? q.points : 1;
+        stopTimer();
+        playSfx("correct");
+        currentIndex += 1;
+        if (currentIndex >= questions.length) {
+          playSfx("win");
+          await saveScore();
+          endGame("Parabéns! Você completou todas as perguntas.");
+        } else {
+          renderQuestion();
+        }
+      }
+
+      function secondsForDifficulty(diff) {
+        if (diff === "fácil") return 30;
+        if (diff === "médio") return 20;
+        if (diff === "difícil") return 12;
+        return 30;
+      }
+
+      function startTimer() {
+        stopTimer();
+        perQuestionSeconds = secondsForDifficulty(difficulty);
+        remaining = perQuestionSeconds;
+        updateTimerUI();
+        timerId = setInterval(() => {
+          remaining -= 1;
+          updateTimerUI();
+          if (remaining <= 0) {
+            playSfx("lose");
+            endGame("Tempo esgotado. Fim de jogo!");
+          }
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (timerId) {
+          clearInterval(timerId);
+          timerId = null;
+        }
+      }
+
+      function updateTimerUI() {
+        const t = document.getElementById("timer");
+        if (t) t.textContent = `Tempo: ${remaining}s`;
+      }
+
+      async function init() {
+        const sid = localStorage.getItem("sessionId");
+        const uname = localStorage.getItem("sessionName");
+        const userEl = document.getElementById("user");
+        const authBox = document.getElementById("auth");
+        const gameCard = document.getElementById("card");
+        const authToolbar = document.getElementById("toolbar-auth");
+        const authLinks = document.getElementById("auth-links");
+        setupAudio();
+        if (!sid) {
+          show(authBox);
+          hide(gameCard);
+          wireAuthHandlers();
+
+          if (authLinks) {
+            authLinks.innerHTML =
+              '<a class="link" href="/login.html">Login</a><span class="muted">·</span><a class="link" href="/register.html">Registro</a>';
+          }
+          return;
+        }
+        userEl.textContent = uname ? `Olá, ${uname}` : `Sessão: ${sid}`;
+
+        if (authLinks) {
+          authLinks.innerHTML =
+            '<a href="/settings.html" class="link" style="margin-right: 12px;">Configurações</a><a href="/ranking.html" class="link" style="margin-right: 12px;">Ranking</a><button onclick="logout()" style="background: transparent; border: 1px solid #e2e8f0; color: #1e293b; border-radius: 8px; padding: 6px 10px; cursor: pointer;">Sair</button>';
+        }
+
+        if (gameCard) {
+          show(gameCard);
+
+          const savedDiff = localStorage.getItem("pref.difficulty") || "fácil";
+          const sfx = localStorage.getItem("pref.sfx") !== "false";
+          const bgm = localStorage.getItem("pref.bgm") !== "false";
+          difficulty = savedDiff;
+          document.getElementById("difficulty").value = savedDiff;
+
+          loadUserScore().then((totalScore) => {
+            gameCard.innerHTML = `
+              <div style="text-align: center; padding: 40px 20px;">
+                <h2 style="margin: 0 0 16px; color: #64748b;">Bem-vindo ao Quiz Bíblico!</h2>
+                <p style="margin: 0 0 8px; color: #64748b;">Configure suas preferências e comece a jogar.</p>
+                <p style="margin: 0 0 24px; color: #16a34a; font-weight: 600;">Pontuação total: ${totalScore} pontos</p>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                  <button onclick="startGame()" style="padding: 12px 24px; border-radius: 10px; border: 0; background: linear-gradient(90deg, #3b82f6, #ec4899); color: white; cursor: pointer; font-weight: 700;">Iniciar Jogo</button>
+                  <a href="/settings.html" style="padding: 12px 24px; border-radius: 10px; border: 1px solid #e2e8f0; background: transparent; color: #1e293b; text-decoration: none; font-weight: 700;">Configurações</a>
+                  <a href="/ranking.html" style="padding: 12px 24px; border-radius: 10px; border: 1px solid #e2e8f0; background: transparent; color: #1e293b; text-decoration: none; font-weight: 700;">Ranking</a>
+                </div>
+              </div>
+            `;
+          });
+        }
+      }
+
+      function wireAuthHandlers() {
+        const errorBox = document.getElementById("auth-error");
+        const loginBtn = document.getElementById("btn-login");
+        const registerBtn = document.getElementById("btn-register");
+        loginBtn.onclick = async () => {
+          hide(errorBox);
+          const nomeunico = document.getElementById("nomeunico").value.trim();
+          const senha = document.getElementById("senha").value.trim();
+          if (!nomeunico || !senha) {
+            errorBox.textContent = "Informe nome único e senha.";
+            show(errorBox);
+            return;
+          }
+          const res = await fetch(`${API}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nomeunico, senha }),
+          });
+          const body = await res.json();
+          if (!res.ok) {
+            errorBox.textContent = body.error || "Falha no login.";
+            show(errorBox);
+            return;
+          }
+          localStorage.setItem("sessionId", body.id);
+          localStorage.setItem("sessionName", body.nome || nomeunico);
+          location.reload();
+        };
+        registerBtn.onclick = async () => {
+          hide(errorBox);
+          const nome = document.getElementById("reg-nome").value.trim();
+          const senha = document.getElementById("reg-senha").value.trim();
+          if (!nome || !senha) {
+            errorBox.textContent = "Informe nome e senha para registrar.";
+            show(errorBox);
+            return;
+          }
+          const res = await fetch(`${API}/usuarios`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome, senha }),
+          });
+          if (!res.ok) {
+            const t = await res.text();
+            errorBox.textContent = t || "Falha ao registrar.";
+            show(errorBox);
+            return;
+          }
+          const data = await res.json();
+          localStorage.setItem("sessionId", data.id);
+          localStorage.setItem("sessionName", nome);
+          location.reload();
+        };
+      }
+
+      function onChangeDifficulty() {
+        difficulty = document.getElementById("difficulty").value;
+        localStorage.setItem("pref.difficulty", difficulty);
+      }
+
+      window.addEventListener("DOMContentLoaded", init);
+
+      async function startGame() {
+        const gameCard = document.getElementById("card");
+        if (gameCard) {
+          gameCard.innerHTML = `
+            <div id="progress" class="muted" style="margin-bottom: 8px"></div>
+            <div id="question" class="question"></div>
+            <div id="answers" class="answers"></div>
+          `;
+        }
+        startBgmIfEnabled();
+        await loadQuestionsAndStart();
+      }
+
+      async function loadQuestionsAndStart() {
+        const res = await fetch(`${API}/perguntas`);
+        const all = await res.json();
+        const normalize = (s) =>
+          (s || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "");
+        const target = normalize(difficulty);
+        questions = (all || []).filter((q) => normalize(q.level) === target);
+        questions.sort(() => Math.random() - 0.5);
+        questions = questions.slice(0, 10);
+        if (!Array.isArray(questions) || questions.length === 0) {
+          document.getElementById("card").innerHTML =
+            '<div class="danger">Sem perguntas disponíveis.</div>';
+          return;
+        }
+        currentIndex = 0;
+        score = 0;
+        renderQuestion();
+      }
+
+      function setupAudio() {
+        audioBgm = new Audio("./sounds/back.mp3");
+        audioBgm.loop = true;
+        audioBgm.volume = 0.35;
+        audioCorrect = new Audio("./sounds/corret.mp3");
+        audioCorrect.volume = 0.9;
+        audioWrong = new Audio("./sounds/wrong.mp3");
+        audioWrong.volume = 0.9;
+        audioWin = new Audio("./sounds/win.mp3");
+        audioWin.volume = 0.9;
+        audioLose = new Audio("./sounds/lose.mp3");
+        audioLose.volume = 0.9;
+      }
+
+      function sfxEnabled() {
+        return localStorage.getItem("pref.sfx") !== "false";
+      }
+      function bgmEnabled() {
+        return localStorage.getItem("pref.bgm") !== "false";
+      }
+
+      function startBgmIfEnabled() {
+        if (bgmEnabled() && audioBgm) {
+          audioBgm.currentTime = 0;
+          audioBgm.play().catch(() => {});
+        }
+      }
+      function stopBgm() {
+        if (audioBgm) {
+          audioBgm.pause();
+        }
+      }
+      function playSfx(kind) {
+        if (!sfxEnabled()) return;
+        const map = {
+          correct: audioCorrect,
+          wrong: audioWrong,
+          win: audioWin,
+          lose: audioLose,
+        };
+        const clip = map[kind];
+        if (clip) {
+          try {
+            clip.currentTime = 0;
+            clip.play();
+          } catch (e) {}
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div
+      id="toolbar-auth"
+      class="toolbar"
+      style="justify-content: flex-end; margin-bottom: 0"
+    >
+      <div id="auth-links"></div>
+    </div>
+    <div class="header">
+      <h1
+        style="
+          margin: 0;
+          font-size: 32px;
+          background: linear-gradient(90deg, #3b82f6, #ec4899);
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-align: center;
+          width: 100%;
+        "
+      >
+        Quiz Bíblico
+      </h1>
+      <div id="user" class="muted"></div>
+    </div>
+    <div class="toolbar">
+      <label for="difficulty" class="muted">Dificuldade</label>
+      <select id="difficulty" onchange="onChangeDifficulty()">
+        <option value="fácil">Fácil</option>
+        <option value="médio">Médio</option>
+        <option value="difícil">Difícil</option>
+      </select>
+      <div class="spacer"></div>
+      <div id="timer" class="muted"></div>
+    </div>
+    <div id="auth" class="auth" style="display: none">
+      <div class="row">
+        <label for="nomeunico">Entrar com nome único (ID)</label>
+        <input id="nomeunico" type="text" placeholder="Ex.: 8x2k..." />
+      </div>
+      <div class="row">
+        <label for="senha">Senha</label>
+        <input id="senha" type="password" placeholder="Sua senha" />
+      </div>
+      <button id="btn-login">Entrar</button>
+      <hr style="border-color: #334155" />
+      <div class="row">
+        <label for="reg-nome">Criar conta (Nome)</label>
+        <input id="reg-nome" type="text" placeholder="Seu nome" />
+      </div>
+      <div class="row">
+        <label for="reg-senha">Senha</label>
+        <input id="reg-senha" type="password" placeholder="Crie uma senha" />
+      </div>
+      <button id="btn-register" class="secondary">Criar conta</button>
+      <div id="auth-error" class="error"></div>
+    </div>
+    <div id="card" class="card">
+      <div id="progress" class="muted" style="margin-bottom: 8px"></div>
+      <div id="question" class="question"></div>
+      <div id="answers" class="answers"></div>
+    </div>
+  </body>
+</html>

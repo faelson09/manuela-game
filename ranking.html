@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ranking | Quiz Bíblico</title>
+    <style>
+      @keyframes moveBg {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+        padding: 24px 16px;
+        background: linear-gradient(120deg, #0ea5e9, #ffffff, #ec4899);
+        background-size: 200% 200%;
+        animation: moveBg 18s ease infinite;
+        color: #1e293b;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 600px;
+        margin: 60px auto;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25),
+          0 0 22px rgba(236, 72, 153, 0.25);
+        backdrop-filter: blur(6px);
+      }
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        background: linear-gradient(90deg, #3b82f6, #ec4899);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+      }
+      h2 {
+        margin: 8px 0 24px;
+        font-size: 18px;
+        text-align: center;
+        color: #64748b;
+      }
+      .ranking-list {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .ranking-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        background: radial-gradient(
+          120% 120% at 10% 10%,
+          #ffffff 0%,
+          #f8fafc 60%
+        );
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+      }
+      .ranking-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+      }
+      .ranking-item.top-3 {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: white;
+        border-color: #d97706;
+      }
+      .ranking-item.top-3 .rank {
+        color: white;
+        font-weight: 700;
+      }
+      .ranking-item.top-3 .name {
+        color: white;
+        font-weight: 600;
+      }
+      .ranking-item.top-3 .points {
+        color: white;
+        font-weight: 600;
+      }
+      .rank {
+        font-size: 18px;
+        font-weight: 700;
+        color: #3b82f6;
+        min-width: 40px;
+        text-align: center;
+      }
+      .name {
+        flex: 1;
+        font-size: 16px;
+        font-weight: 500;
+        color: #1e293b;
+        margin: 0 16px;
+      }
+      .points {
+        font-size: 16px;
+        font-weight: 600;
+        color: #16a34a;
+      }
+      .medal {
+        font-size: 24px;
+        margin-right: 8px;
+      }
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #64748b;
+      }
+      .error {
+        text-align: center;
+        padding: 20px;
+        color: #dc2626;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        margin-bottom: 16px;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 24px;
+      }
+      button {
+        padding: 12px 24px;
+        border-radius: 10px;
+        border: 0;
+        background: linear-gradient(90deg, #3b82f6, #ec4899);
+        color: white;
+        cursor: pointer;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.25),
+          0 0 0 0 rgba(236, 72, 153, 0.25);
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+      }
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(59, 130, 246, 0.25),
+          0 8px 22px rgba(236, 72, 153, 0.25);
+      }
+      button.secondary {
+        background: transparent;
+        border: 1px solid #e2e8f0;
+        color: #1e293b;
+      }
+      .link {
+        color: #ec4899;
+        text-decoration: none;
+        text-align: center;
+        margin-top: 8px;
+      }
+      .link:hover {
+        color: #be185d;
+        text-decoration: underline;
+      }
+      .user-position {
+        background: linear-gradient(90deg, #3b82f6, #ec4899);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 16px;
+        font-weight: 600;
+      }
+    </style>
+    <script>
+      const API = "http://localhost:5000";
+
+      function show(el) {
+        el.style.display = "block";
+      }
+
+      function hide(el) {
+        el.style.display = "none";
+      }
+
+      async function loadRanking() {
+        const loadingEl = document.getElementById("loading");
+        const errorEl = document.getElementById("error");
+        const rankingEl = document.getElementById("ranking");
+        const userPositionEl = document.getElementById("user-position");
+
+        show(loadingEl);
+        hide(errorEl);
+        hide(rankingEl);
+        hide(userPositionEl);
+
+        try {
+          // Carregar ranking
+          const rankingRes = await fetch(`${API}/usuarios/ranking`);
+          if (!rankingRes.ok) throw new Error("Erro ao carregar ranking");
+          const ranking = await rankingRes.json();
+
+          // Carregar posição do usuário atual
+          const sessionId = localStorage.getItem("sessionId");
+          let userPosition = null;
+          if (sessionId) {
+            try {
+              const userData = ranking.map((a, i) => {
+                return { id: sessionId, position: i + 1 };
+              });
+              userPosition = userData.find((a) => a.id == sessionId).position;
+            } catch (e) {
+              console.log("Não foi possível carregar posição do usuário");
+            }
+          }
+
+          hide(loadingEl);
+          renderRanking(ranking, userPosition);
+        } catch (error) {
+          hide(loadingEl);
+          show(errorEl);
+          errorEl.textContent = "Erro ao carregar ranking. Tente novamente.";
+        }
+      }
+
+      function renderRanking(ranking, userPosition) {
+        const rankingEl = document.getElementById("ranking");
+        const userPositionEl = document.getElementById("user-position");
+
+        // Mostrar posição do usuário se logado
+        if (userPosition !== null) {
+          show(userPositionEl);
+          userPositionEl.innerHTML = `Sua posição: ${userPosition}º lugar`;
+        }
+
+        // Renderizar ranking
+        rankingEl.innerHTML = ranking
+          .map((user, index) => {
+            const position = index + 1;
+            const isTop3 = position <= 3;
+            const medal =
+              position === 1
+                ? "🥇"
+                : position === 2
+                ? "🥈"
+                : position === 3
+                ? "🥉"
+                : "";
+
+            return `
+            <div class="ranking-item ${isTop3 ? "top-3" : ""}">
+              <div class="rank">${position}º</div>
+              ${medal ? `<span class="medal">${medal}</span>` : ""}
+              <div class="name">${user.nome || "Usuário"}</div>
+              <div class="points">${user.total_pontos || 0} pts</div>
+            </div>
+          `;
+          })
+          .join("");
+
+        show(rankingEl);
+      }
+
+      function logout() {
+        localStorage.removeItem("sessionId");
+        localStorage.removeItem("sessionName");
+        window.location.href = "/login.html";
+      }
+
+      function refreshRanking() {
+        loadRanking();
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        loadRanking();
+        document
+          .getElementById("btn-refresh")
+          .addEventListener("click", refreshRanking);
+        document.getElementById("btn-logout").addEventListener("click", logout);
+
+        // Verificar se há sessão
+        const sid = localStorage.getItem("sessionId");
+        if (!sid) {
+          // Se não há sessão, esconder botão de logout
+          document.getElementById("btn-logout").style.display = "none";
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Quiz Bíblico</h1>
+      <h2>Ranking</h2>
+
+      <div id="loading" class="loading">Carregando ranking...</div>
+
+      <div id="error" class="error" style="display: none"></div>
+
+      <div id="user-position" class="user-position" style="display: none"></div>
+
+      <div id="ranking" class="ranking-list" style="display: none">
+        <!-- Ranking será carregado aqui -->
+      </div>
+
+      <div class="actions">
+        <button id="btn-refresh" type="button">Atualizar</button>
+        <a href="/index.html" class="link">Voltar ao jogo</a>
+        <button id="btn-logout" class="secondary" type="button">Sair</button>
+      </div>
+    </div>
+  </body>
+</html>

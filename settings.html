@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configurações | Quiz Bíblico</title>
+    <style>
+      @keyframes moveBg {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+        padding: 24px 16px;
+        background: linear-gradient(120deg, #0ea5e9, #ffffff, #ec4899);
+        background-size: 200% 200%;
+        animation: moveBg 18s ease infinite;
+        color: #1e293b;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 420px;
+        margin: 60px auto;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25),
+          0 0 22px rgba(236, 72, 153, 0.25);
+        backdrop-filter: blur(6px);
+      }
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        background: linear-gradient(90deg, #3b82f6, #ec4899);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+      }
+      h2 {
+        margin: 8px 0 16px;
+        font-size: 18px;
+        text-align: center;
+        color: #64748b;
+      }
+      form {
+        display: grid;
+        gap: 12px;
+      }
+      label {
+        font-size: 14px;
+        color: #64748b;
+      }
+      select,
+      input[type="checkbox"] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: radial-gradient(
+          120% 120% at 10% 10%,
+          #ffffff 0%,
+          #f8fafc 60%
+        );
+        color: #1e293b;
+      }
+      .row {
+        display: grid;
+        gap: 8px;
+      }
+      .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 8px 0;
+      }
+      .checkbox-row input[type="checkbox"] {
+        width: auto;
+      }
+      .actions {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      button {
+        padding: 12px;
+        border-radius: 10px;
+        border: 0;
+        background: linear-gradient(90deg, #3b82f6, #ec4899);
+        color: white;
+        cursor: pointer;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.25),
+          0 0 0 0 rgba(236, 72, 153, 0.25);
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+      }
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(59, 130, 246, 0.25),
+          0 8px 22px rgba(236, 72, 153, 0.25);
+      }
+      button.secondary {
+        background: transparent;
+        border: 1px solid #e2e8f0;
+        color: #1e293b;
+      }
+      .success {
+        color: #16a34a;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        padding: 8px 10px;
+        border-radius: 8px;
+        display: none;
+        margin-bottom: 12px;
+      }
+      .link {
+        color: #ec4899;
+        text-decoration: none;
+        text-align: center;
+        margin-top: 8px;
+      }
+      .link:hover {
+        color: #be185d;
+        text-decoration: underline;
+      }
+    </style>
+    <script>
+      const API = "http://localhost:5000";
+
+      function show(el) {
+        el.style.display = "block";
+      }
+
+      function hide(el) {
+        el.style.display = "none";
+      }
+
+      function loadSettings() {
+        const savedDiff = localStorage.getItem("pref.difficulty") || "fácil";
+        const sfx = localStorage.getItem("pref.sfx") !== "false";
+        const bgm = localStorage.getItem("pref.bgm") !== "false";
+
+        document.getElementById("difficulty").value = savedDiff;
+        document.getElementById("sfx").checked = sfx;
+        document.getElementById("bgm").checked = bgm;
+      }
+
+      function saveSettings() {
+        const difficulty = document.getElementById("difficulty").value;
+        const sfx = document.getElementById("sfx").checked;
+        const bgm = document.getElementById("bgm").checked;
+
+        localStorage.setItem("pref.difficulty", difficulty);
+        localStorage.setItem("pref.sfx", String(sfx));
+        localStorage.setItem("pref.bgm", String(bgm));
+
+        const successBox = document.getElementById("success");
+        successBox.textContent = "Configurações salvas!";
+        show(successBox);
+        setTimeout(() => hide(successBox), 2000);
+      }
+
+      function logout() {
+        localStorage.removeItem("sessionId");
+        localStorage.removeItem("sessionName");
+        window.location.href = "/login.html";
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        loadSettings();
+        document
+          .getElementById("btn-save")
+          .addEventListener("click", saveSettings);
+        document.getElementById("btn-logout").addEventListener("click", logout);
+
+        // Verificar se há sessão
+        const sid = localStorage.getItem("sessionId");
+        if (!sid) {
+          window.location.href = "/login.html";
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Quiz Bíblico</h1>
+      <h2>Configurações</h2>
+      <div id="success" class="success"></div>
+
+      <form>
+        <div class="row">
+          <label for="difficulty">Dificuldade</label>
+          <select id="difficulty">
+            <option value="fácil">Fácil</option>
+            <option value="médio">Médio</option>
+            <option value="difícil">Difícil</option>
+          </select>
+        </div>
+
+        <div class="checkbox-row">
+          <input id="sfx" type="checkbox" checked />
+          <label for="sfx">Efeitos sonoros</label>
+        </div>
+
+        <div class="checkbox-row">
+          <input id="bgm" type="checkbox" checked />
+          <label for="bgm">Música de fundo</label>
+        </div>
+
+        <div class="actions">
+          <button id="btn-save" type="button">Salvar configurações</button>
+          <a class="link" href="/index.html">Voltar ao jogo</a>
+          <a class="link" href="/ranking.html">Ver ranking</a>
+          <button id="btn-logout" class="secondary" type="button">Sair</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
