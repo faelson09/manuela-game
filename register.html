@@ -151,10 +151,45 @@
           localStorage.setItem("sessionId", data.id);
           localStorage.setItem("sessionName", nome);
           show(successBox);
-          successBox.textContent = "Conta criada! Entrando...";
-          setTimeout(() => {
-            window.location.href = "/index.html";
-          }, 600);
+          successBox.innerHTML = `
+            <div style="margin-bottom:8px;">Conta criada com sucesso!</div>
+            <div class="hint" style="margin-bottom:8px;">Guarde seu ID (nome único) para futuros logins:</div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap; margin-bottom:8px;">
+              <code id="generated-id" style="padding:6px 8px; border:1px solid #e2e8f0; border-radius:6px; background:#fff; color:#1e293b;">${
+                data.id || ""
+              }</code>
+              <button id="btn-copy-id" type="button" style="padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; color:#1e293b; cursor:pointer;">Copiar ID</button>
+            </div>
+            <button id="btn-continue" type="button">Continuar</button>
+          `;
+          const idEl = document.getElementById("generated-id");
+          const copyBtn = document.getElementById("btn-copy-id");
+          const contBtn = document.getElementById("btn-continue");
+          if (copyBtn && idEl) {
+            copyBtn.addEventListener("click", async () => {
+              const text = idEl.textContent || "";
+              try {
+                await navigator.clipboard.writeText(text);
+                copyBtn.textContent = "Copiado!";
+                setTimeout(() => (copyBtn.textContent = "Copiar ID"), 1500);
+              } catch (_) {
+                // Fallback
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+                copyBtn.textContent = "Copiado!";
+                setTimeout(() => (copyBtn.textContent = "Copiar ID"), 1500);
+              }
+            });
+          }
+          if (contBtn) {
+            contBtn.addEventListener("click", () => {
+              window.location.href = "/index.html";
+            });
+          }
         } catch (err) {
           errorBox.textContent = err.message || "Erro inesperado.";
           show(errorBox);
