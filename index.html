@@ -213,7 +213,7 @@
       }
     </style>
     <script>
-      const API = "http://localhost:5000";
+      const API = "https://manuela-game-api.vercel.app";
       let questions = [];
       let currentIndex = 0;
       let score = 0;
@@ -380,14 +380,7 @@
         const authLinks = document.getElementById("auth-links");
         setupAudio();
         if (!sid) {
-          show(authBox);
-          hide(gameCard);
-          wireAuthHandlers();
-
-          if (authLinks) {
-            authLinks.innerHTML =
-              '<a class="link" href="/login.html">Login</a><span class="muted">·</span><a class="link" href="/register.html">Registro</a>';
-          }
+          window.location.href = "/login.html";
           return;
         }
         userEl.textContent = uname ? `Olá, ${uname}` : `Sessão: ${sid}`;
@@ -605,28 +598,7 @@
       <div class="spacer"></div>
       <div id="timer" class="muted"></div>
     </div>
-    <div id="auth" class="auth" style="display: none">
-      <div class="row">
-        <label for="nomeunico">Entrar com nome único (ID)</label>
-        <input id="nomeunico" type="text" placeholder="Ex.: 8x2k..." />
-      </div>
-      <div class="row">
-        <label for="senha">Senha</label>
-        <input id="senha" type="password" placeholder="Sua senha" />
-      </div>
-      <button id="btn-login">Entrar</button>
-      <hr style="border-color: #334155" />
-      <div class="row">
-        <label for="reg-nome">Criar conta (Nome)</label>
-        <input id="reg-nome" type="text" placeholder="Seu nome" />
-      </div>
-      <div class="row">
-        <label for="reg-senha">Senha</label>
-        <input id="reg-senha" type="password" placeholder="Crie uma senha" />
-      </div>
-      <button id="btn-register" class="secondary">Criar conta</button>
-      <div id="auth-error" class="error"></div>
-    </div>
+    <div id="auth" class="auth" style="display: none"></div>
     <div id="card" class="card">
       <div id="progress" class="muted" style="margin-bottom: 8px"></div>
       <div id="question" class="question"></div>
